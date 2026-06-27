@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Hidrataciones - v4</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #f0f4f8; margin: 0; padding: 20px; }
+        .container { max-width: 1400px; margin: auto; background: white; border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); padding: 20px 30px 30px; }
+        h1 { text-align: center; color: #1a3b5d; margin-top: 0; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0; }
+        .menu { display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 0; justify-content: center; }
+        .menu button { background: #e2e8f0; border: none; padding: 10px 20px; border-radius: 30px; font-weight: 600; color: #2d3748; cursor: pointer; transition: 0.2s; font-size: 0.95rem; flex: 1 0 auto; max-width: 180px; }
+        .menu button:hover { background: #cbd5e0; transform: scale(1.02); }
+        .menu button.active { background: #1a3b5d; color: white; box-shadow: 0 4px 10px rgba(26,59,93,0.3); }
+        .sheet { display: none; animation: fade 0.3s ease; }
+        .sheet.active { display: block; }
+        @keyframes fade { from { opacity: 0.4; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 30px; margin-top: 20px; }
+        .inputs, .results { background: #f9fafc; padding: 20px 25px; border-radius: 12px; border: 1px solid #e2e8f0; }
+        .inputs h3, .results h3 { margin-top: 0; color: #1a3b5d; border-bottom: 1px solid #dce3eb; padding-bottom: 10px; }
+        .input-group { margin-bottom: 12px; display: flex; align-items: center; flex-wrap: wrap; }
+        .input-group label { width: 160px; font-weight: 500; color: #2d3748; font-size: 0.9rem; }
+        .input-group input { flex: 1; min-width: 100px; padding: 6px 10px; border: 1px solid #cbd5e0; border-radius: 8px; font-size: 0.95rem; background: white; transition: 0.2s; }
+        .input-group input:focus { border-color: #1a3b5d; outline: none; box-shadow: 0 0 0 3px rgba(26,59,93,0.2); }
+        .btn-calc { background: #1a3b5d; color: white; border: none; padding: 12px 30px; border-radius: 30px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: 0.2s; margin-top: 10px; width: 100%; }
+        .btn-calc:hover { background: #2b4e72; transform: scale(1.01); }
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+        th { background: #edf2f7; color: #1a3b5d; padding: 8px 12px; text-align: left; border-bottom: 2px solid #cbd5e0; }
+        td { padding: 6px 12px; border-bottom: 1px solid #e2e8f0; }
+        .total-row { background: #fef9e7; font-weight: 600; }
+        .value-col { text-align: right; font-weight: 500; color: #1a3b5d; }
+        .highlight { background: #fef9e7; }
+        .separator { border-bottom: 2px solid #cbd5e0; margin: 8px 0; }
+        .sub-header { font-weight: 600; color: #2d3748; margin: 10px 0 5px; }
+        .info-box { background: #e8f0fe; padding: 10px 15px; border-radius: 8px; margin: 8px 0; }
+        @media (max-width: 800px) {
+            .grid { grid-template-columns: 1fr; }
+            .input-group label { width: 100%; margin-bottom: 4px; }
+            .menu button { max-width: 100%; flex: 1 1 100%; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>💧 Calculadora de Hidrataciones</h1>
+    <div class="menu" id="menuButtons">
+        <button class="active" data-sheet="hpm">HPM</button>
+        <button data-sheet="rn">Recién Nacido</button>
+        <button data-sheet="holliday">Holliday</button>
+        <button data-sheet="ceto">Cetoacidosis</button>
+        <button data-sheet="carvajal">Carvajal</button>
+        <button data-sheet="poli">Polielectrolítica</button>
+    </div>
+
+    <!-- =============== HPM =============== -->
+    <div id="sheet-hpm" class="sheet active">
+        <h2>Hidratación de Mantenimiento (HPM)</h2>
+        <div class="grid">
+            <div class="inputs">
+                <h3>Datos de entrada</h3>
+                <div class="input-group"><label>Peso (kg)</label><input type="number" id="hpm-peso" step="0.1" value="70"></div>
+                <div class="input-group"><label>Talla (cm)</label><input type="number" id="hpm-talla" step="0.1" value="170"></div>
+                <div class="input-group"><label>Pérdidas / DIL (ml)</label><input type="number" id="hpm-perdidas" step="1" value="0"></div>
+                <button class="btn-calc" onclick="calcularHPM()">Calcular</button>
+            </div>
+            <div class="results" id="hpm-results">
+                <h3>Resultados</h3>
+                <div id="hpm-output">Complete los datos y presione Calcular.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =============== RN =============== -->
+    <div id="sheet-rn" class="sheet">
+        <h2>Recién Nacido (&lt; 6 kg)</h2>
+        <div class="grid">
+            <div class="inputs">
+                <h3>Datos de entrada</h3>
+                <div class="input-group"><label>Peso (kg)</label><input type="number" id="rn-peso" step="0.01" value="3.5"></div>
+                <div class="input-group"><label>Talla (cm)</label><input type="number" id="rn-talla" step="0.1" value="50"></div>
+                <div class="input-group"><label>RH (ml/kg/día)</label><input type="number" id="rn-rh" step="1" value="80"></div>
+                <div class="input-group"><label>VIG (mg/dL)</label><input type="number" id="rn-vig" step="1" value="90"></div>
+                <div class="input-group"><label>Pérdidas / DIL (ml)</label><input type="number" id="rn-perdidas" step="1" value="0"></div>
+                <button class="btn-calc" onclick="calcularRN()">Calcular</button>
+            </div>
+            <div class="results" id="rn-results">
+                <h3>Resultados</h3>
+                <div id="rn-output">Complete los datos y presione Calcular.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =============== HOLLIDAY =============== -->
+    <div id="sheet-holliday" class="sheet">
+        <h2>Holliday (&lt; 10 kg)</h2>
+        <div class="grid">
+            <div class="inputs">
+                <h3>Datos de entrada</h3>
+                <div class="input-group"><label>Peso (kg)</label><input type="number" id="hol-peso" step="0.1" value="8"></div>
+                <div class="input-group"><label>Talla (cm)</label><input type="number" id="hol-talla" step="0.1" value="70"></div>
+                <div class="input-group"><label>Pérdidas / DIL (ml)</label><input type="number" id="hol-perdidas" step="1" value="0"></div>
+                <button class="btn-calc" onclick="calcularHolliday()">Calcular</button>
+            </div>
+            <div class="results" id="hol-results">
+                <h3>Resultados</h3>
+                <div id="hol-output">Complete los datos y presione Calcular.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =============== CETOACIDOSIS =============== -->
+    <div id="sheet-ceto" class="sheet">
+        <h2>Cetoacidosis Diabética</h2>
+        <div class="grid">
+            <div class="inputs">
+                <h3>Datos de entrada</h3>
+                <div class="input-group"><label>Peso (kg)</label><input type="number" id="ceto-peso" step="0.1" value="60"></div>
+                <div class="input-group"><label>Talla (cm)</label><input type="number" id="ceto-talla" step="0.1" value="160"></div>
+                <div class="input-group"><label>Glicemia (mg/dL)</label><input type="number" id="ceto-glicemia" step="1" value="300"></div>
+                <div class="input-group"><label>Pérdidas / DIL (ml)</label><input type="number" id="ceto-perdidas" step="1" value="0"></div>
+                <button class="btn-calc" onclick="calcularCeto()">Calcular</button>
+            </div>
+            <div class="results" id="ceto-results">
+                <h3>Resultados</h3>
+                <div id="ceto-output">Complete los datos y presione Calcular.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =============== CARVAJAL =============== -->
+    <div id="sheet-carvajal" class="sheet">
+        <h2>Carvajal (Gran Quemado SCQ &gt; 10%)</h2>
+        <div class="grid">
+            <div class="inputs">
+                <h3>Datos de entrada</h3>
+                <div class="input-group"><label>Peso (kg)</label><input type="number" id="car-peso" step="0.1" value="70"></div>
+                <div class="input-group"><label>Talla (cm)</label><input type="number" id="car-talla" step="0.1" value="170"></div>
+                <div class="input-group"><label>SCQ (%)</label><input type="number" id="car-scq" step="0.1" value="20"></div>
+                <button class="btn-calc" onclick="calcularCarvajal()">Calcular</button>
+            </div>
+            <div class="results" id="car-results">
+                <h3>Resultados</h3>
+                <div id="car-output">Complete los datos y presione Calcular.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =============== POLIELECTROLÍTICA =============== -->
+    <div id="sheet-poli" class="sheet">
+        <h2>Solución Polielectrolítica</h2>
+        <div class="grid">
+            <div class="inputs">
+                <h3>Datos de entrada</h3>
+                <div class="input-group"><label>Peso (kg)</label><input type="number" id="poli-peso" step="0.1" value="70"></div>
+                <div class="input-group"><label>Talla (cm)</label><input type="number" id="poli-talla" step="0.1" value="170"></div>
+                <div class="input-group"><label>Pérdidas / DIL (ml)</label><input type="number" id="poli-perdidas" step="1" value="0"></div>
+                <button class="btn-calc" onclick="calcularPoli()">Calcular</button>
+            </div>
+            <div class="results" id="poli-results">
+                <h3>Resultados</h3>
+                <div id="poli-output">Complete los datos y presione Calcular.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Navegación
+    document.querySelectorAll('#menuButtons button').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('#menuButtons button').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            document.querySelectorAll('.sheet').forEach(s => s.classList.remove('active'));
+            document.getElementById('sheet-' + this.dataset.sheet).classList.add('active');
+        });
+    });
+
+    function redondear(v, d=2) { if (isNaN(v) || !isFinite(v)) return '---'; return Number(v.toFixed(d)); }
+
+    // Función para calcular el factor divisor según LR (C9)
+    function getDivisor(LR) {
+        if (LR < 500) return 1;
+        if (LR < 1000) return 2;
+        if (LR < 1500) return 3;
+        if (LR < 2000) return 4;
+        return 6; // LR >= 2000
+    }
+
+    // Función para calcular las horas según LT
+    function getHoras(LT) {
+        if (LT < 500) return 24;
+        if (LT < 1000) return 12;
+        if (LT < 1500) return 8;
+        if (LT < 2000) return 6;
+        return 4; // LT >= 2000
+    }
+
+    // Función para mostrar tabla con dos columnas: DIARIO y DOSIS
+    function mostrarTabla(containerId, filas, totalDiario, totalDosis, horas, mostrarTotales=true) {
+        const el = document.getElementById(containerId);
+        if (!el) return;
+        let html = `<div class="table-wrap"><table>
+            <tr><th>Componente</th><th style="text-align:right">POR DIA</th><th style="text-align:right">POR DOSIS</th></tr>`;
+        for (let f of filas) {
+            html += `<tr><td>${f.label}</td><td class="value-col">${f.diario}</td><td class="value-col">${f.dosis}</td></tr>`;
+        }
+        if (mostrarTotales) {
+            html += `<tr class="total-row"><td>TOTAL</td><td class="value-col">${totalDiario}</td><td class="value-col">${totalDosis}</td></tr>`;
+        }
+        html += `</table></div>`;
+
+        // CC/HORA y GOTAS/MIN
+        if (horas > 0) {
+            const ccHora = totalDosis / horas;
+            const gotasMin = ccHora / 3;
+            html += `<div style="margin-top:15px; display:flex; gap:30px; flex-wrap:wrap; background:#e8f0fe; padding:10px 15px; border-radius:8px;">
+                <div><strong>HORAS:</strong> ${redondear(horas)}</div>
+                <div><strong>CC/HORA:</strong> ${redondear(ccHora)}</div>
+                <div><strong>GOTAS/MIN:</strong> ${redondear(gotasMin)}</div>
+            </div>`;
+        }
+
+        el.innerHTML = html;
+    }
+
+    // ================================================
+    // ALGORITMO HPM
+    // ================================================
+    function calcularHPM() {
+        const peso = parseFloat(document.getElementById('hpm-peso').value) || 0;
+        const talla = parseFloat(document.getElementById('hpm-talla').value) || 0;
+        const perdidas = parseFloat(document.getElementById('hpm-perdidas').value) || 0;
+        if (peso <= 0 || talla <= 0) { document.getElementById('hpm-output').innerHTML = '<div style="color:#e53e3e;">Peso y talla > 0</div>'; return; }
+
+        const SC = Math.sqrt((peso * talla) / 3600);
+        const LT = Math.min(SC * 1500, 3000);
+        const KCl = peso * 2;
+        const NaCl = (talla * 2) / 3.4;
+        const MgSO4 = peso * 0.25;
+        const AG = KCl + NaCl + MgSO4;
+        const LR = LT - (AG + perdidas);
+        if (LR <= 0) { document.getElementById('hpm-output').innerHTML = '<div style="color:#e53e3e;">LR negativo. Revise pérdidas.</div>'; return; }
+
+        const divisor = getDivisor(LR);
+        const horas = getHoras(LT);
+        const dexDiario = LR;
+        const dexDosis = LR / divisor;
+
+        const filas = [
+            { label: 'DEXTROSA 5%', diario: redondear(dexDiario), dosis: redondear(dexDosis) },
+            { label: 'KCL AL 7,5%', diario: redondear(KCl), dosis: redondear(KCl / divisor) },
+            { label: 'NACL AL 20%', diario: redondear(NaCl), dosis: redondear(NaCl / divisor) },
+            { label: 'MGSO4 AL 10%', diario: redondear(MgSO4), dosis: redondear(MgSO4 / divisor) }
+        ];
+        const totalDiario = dexDiario + KCl + NaCl + MgSO4;
+        const totalDosis = totalDiario / divisor;
+        mostrarTabla('hpm-output', filas, redondear(totalDiario), redondear(totalDosis), horas);
+    }
+
+    // ================================================
+    // ALGORITMO RN
+    // ================================================
+    function calcularRN() {
+        const peso = parseFloat(document.getElementById('rn-peso').value) || 0;
+        const talla = parseFloat(document.getElementById('rn-talla').value) || 0;
+        const rh = parseFloat(document.getElementById('rn-rh').value) || 0;
+        const vig = parseFloat(document.getElementById('rn-vig').value) || 0;
+        const perdidas = parseFloat(document.getElementById('rn-perdidas').value) || 0;
+        if (peso <= 0 || talla <= 0 || rh <= 0) { document.getElementById('rn-output').innerHTML = '<div style="color:#e53e3e;">Peso, talla y RH > 0</div>'; return; }
+
+        const SC = Math.sqrt((peso * talla) / 3600);
+        const LT = rh * peso;
+        const KCl = peso * 2;
+        const NaCl = (peso * 2) / 3.4;
+        const MgSO4 = peso * 0.25;
+        const Ca = peso * 2;
+        const AG = KCl + NaCl + MgSO4 + Ca;
+        const LR = LT - (AG + perdidas);
+        if (LR <= 0) { document.getElementById('rn-output').innerHTML = '<div style="color:#e53e3e;">LR negativo. Revise pérdidas.</div>'; return; }
+
+        const GG = vig * peso * 1.44;
+        const TG = (GG * 100) / LR;
+        let Dex10 = (GG / 0.05) - LR;
+        let Dex5 = LR - Dex10;
+        if (Dex5 < 0) { Dex5 = 0; Dex10 = LR; }
+        if (Dex10 < 0) { Dex10 = 0; Dex5 = LR; }
+
+        const divisor = getDivisor(LR);
+        const horas = getHoras(LT);
+        const filas = [
+            { label: 'DEXTROSA 5%', diario: redondear(Dex5), dosis: redondear(Dex5 / divisor) },
+            { label: 'DEXTROSA 10%', diario: redondear(Dex10), dosis: redondear(Dex10 / divisor) },
+            { label: 'KCL AL 7,5%', diario: redondear(KCl), dosis: redondear(KCl / divisor) },
+            { label: 'NACL AL 20%', diario: redondear(NaCl), dosis: redondear(NaCl / divisor) },
+            { label: 'MGSO4 AL 10%', diario: redondear(MgSO4), dosis: redondear(MgSO4 / divisor) },
+            { label: 'GLUCONATO CA 10%', diario: redondear(Ca), dosis: redondear(Ca / divisor) }
+        ];
+        const totalDiario = Dex5 + KCl + NaCl + MgSO4 + Ca;
+        const totalDosis = totalDiario / divisor;
+        mostrarTabla('rn-output', filas, redondear(totalDiario), redondear(totalDosis), horas);
+    }
+
+    // ================================================
+    // ALGORITMO HOLLIDAY
+    // ================================================
+    function calcularHolliday() {
+        const peso = parseFloat(document.getElementById('hol-peso').value) || 0;
+        const talla = parseFloat(document.getElementById('hol-talla').value) || 0;
+        const perdidas = parseFloat(document.getElementById('hol-perdidas').value) || 0;
+        if (peso <= 0 || talla <= 0) { document.getElementById('hol-output').innerHTML = '<div style="color:#e53e3e;">Peso y talla > 0</div>'; return; }
+
+        const SC = Math.sqrt((peso * talla) / 3600);
+        const LT = 100 * peso;
+        const KCl = peso * 2;
+        const NaCl = (peso * 2) / 3.4;
+        const MgSO4 = peso * 0.25;
+        const Ca = peso * 2;
+        const AG = KCl + NaCl + MgSO4 + Ca;
+        const LR = LT - (AG + perdidas);
+        if (LR <= 0) { document.getElementById('hol-output').innerHTML = '<div style="color:#e53e3e;">LR negativo. Revise pérdidas.</div>'; return; }
+
+        const divisor = getDivisor(LR);
+        const horas = getHoras(LT);
+        const filas = [
+            { label: 'DEXTROSA 5%', diario: redondear(LR), dosis: redondear(LR / divisor) },
+            { label: 'KCL AL 7,5%', diario: redondear(KCl), dosis: redondear(KCl / divisor) },
+            { label: 'NACL AL 20%', diario: redondear(NaCl), dosis: redondear(NaCl / divisor) },
+            { label: 'MGSO4 AL 10%', diario: redondear(MgSO4), dosis: redondear(MgSO4 / divisor) },
+            { label: 'GLUCONATO CA 10%', diario: redondear(Ca), dosis: redondear(Ca / divisor) }
+        ];
+        const totalDiario = LR + KCl + NaCl + MgSO4 + Ca;
+        const totalDosis = totalDiario / divisor;
+        mostrarTabla('hol-output', filas, redondear(totalDiario), redondear(totalDosis), horas);
+    }
+
+    // ================================================
+    // ALGORITMO CETOACIDOSIS
+    // ================================================
+    function calcularCeto() {
+        const peso = parseFloat(document.getElementById('ceto-peso').value) || 0;
+        const talla = parseFloat(document.getElementById('ceto-talla').value) || 0;
+        const glicemia = parseFloat(document.getElementById('ceto-glicemia').value) || 0;
+        const perdidas = parseFloat(document.getElementById('ceto-perdidas').value) || 0;
+        if (peso <= 0 || talla <= 0 || glicemia <= 0) { document.getElementById('ceto-output').innerHTML = '<div style="color:#e53e3e;">Peso, talla y glicemia > 0</div>'; return; }
+
+        const SC = Math.sqrt((peso * talla) / 3600);
+        const LT = 4000 * SC;
+        const AG = peso * 2;
+        const LR = LT - (AG + perdidas);
+        if (LR <= 0) { document.getElementById('ceto-output').innerHTML = '<div style="color:#e53e3e;">LR negativo. Revise pérdidas.</div>'; return; }
+
+        const KCl = peso * 2;
+        const fase8 = LR / 2;
+        const fase16 = LR / 2;
+
+        let sol8, dex8, sol16, dex16;
+        if (glicemia > 250) {
+            sol8 = fase8 - KCl;
+            sol16 = fase16 - KCl;
+            if (sol8 < 0) sol8 = 0;
+            if (sol16 < 0) sol16 = 0;
+            dex8 = 0;
+            dex16 = 0;
+        } else {
+            let base8 = fase8 - KCl;
+            let base16 = fase16 - KCl;
+            if (base8 < 0) base8 = 0;
+            if (base16 < 0) base16 = 0;
+            sol8 = base8 / 2;
+            dex8 = base8 / 2;
+            sol16 = base16 / 2;
+            dex16 = base16 / 2;
+        }
+
+        const total8 = sol8 + dex8 + KCl;
+        const total16 = sol16 + dex16 + KCl;
+        const ccHora8 = total8 / 8;
+        const gotasMin8 = ccHora8 / 3;
+        const ccHora16 = total16 / 16;
+        const gotasMin16 = ccHora16 / 3;
+
+        const el = document.getElementById('ceto-output');
+        el.innerHTML = `
+            <div class="info-box">
+                <div><strong>SC:</strong> ${redondear(SC)} m²</div>
+                <div><strong>LT:</strong> ${redondear(LT)} ml/24h</div>
+                <div><strong>AG (KCl total):</strong> ${redondear(AG)} ml</div>
+                <div><strong>LR:</strong> ${redondear(LR)} ml/24h</div>
+            </div>
+            <div class="separator"></div>
+            <div class="sub-header">📌 Fase 8 horas (primeras 8h)</div>
+            <div><strong>Volumen:</strong> ${redondear(fase8)} ml</div>
+            <div>Solución 0.45%: ${redondear(sol8)} ml</div>
+            <div>Dextrosa 5%: ${redondear(dex8)} ml</div>
+            <div>KCl 7.5%: ${redondear(KCl)} ml</div>
+            <div style="background:#fef9e7; padding:4px 8px; border-radius:4px; margin-top:4px;"><strong>Total fase 8h:</strong> ${redondear(total8)} ml</div>
+            <div>CC/hora: ${redondear(ccHora8)}</div>
+            <div>Gotas/min: ${redondear(gotasMin8)}</div>
+            <div class="separator"></div>
+            <div class="sub-header">📌 Fase 16 horas (siguientes 16h)</div>
+            <div><strong>Volumen:</strong> ${redondear(fase16)} ml</div>
+            <div>Solución 0.45%: ${redondear(sol16)} ml</div>
+            <div>Dextrosa 5%: ${redondear(dex16)} ml</div>
+            <div>KCl 7.5%: ${redondear(KCl)} ml</div>
+            <div style="background:#fef9e7; padding:4px 8px; border-radius:4px; margin-top:4px;"><strong>Total fase 16h:</strong> ${redondear(total16)} ml</div>
+            <div>CC/hora: ${redondear(ccHora16)}</div>
+            <div>Gotas/min: ${redondear(gotasMin16)}</div>
+            <div class="separator"></div>
+            <div><strong>Glicemia > 250?</strong> ${glicemia > 250 ? '✅ Sí' : '❌ No'}</div>
+        `;
+    }
+
+    // ================================================
+    // ALGORITMO CARVAJAL
+    // ================================================
+    function calcularCarvajal() {
+        const peso = parseFloat(document.getElementById('car-peso').value) || 0;
+        const talla = parseFloat(document.getElementById('car-talla').value) || 0;
+        const scq = parseFloat(document.getElementById('car-scq').value) || 0;
+        if (peso <= 0 || talla <= 0 || scq < 0) { document.getElementById('car-output').innerHTML = '<div style="color:#e53e3e;">Datos válidos requeridos.</div>'; return; }
+
+        const SC = Math.sqrt((peso * talla) / 3600);
+        const LT = 2000 * SC + 5000 * scq;
+        const mitad = LT / 2;
+        const ccHora8 = mitad / 8;
+        const gotasMin8 = ccHora8 / 3;
+        const ccHora16 = mitad / 16;
+        const gotasMin16 = ccHora16 / 3;
+
+        const el = document.getElementById('car-output');
+        el.innerHTML = `
+            <div class="info-box">
+                <div><strong>SC:</strong> ${redondear(SC)} m²</div>
+                <div><strong>SCQ:</strong> ${redondear(scq)} %</div>
+                <div><strong>LT (24h):</strong> ${redondear(LT)} ml</div>
+            </div>
+            <div class="separator"></div>
+            <div class="sub-header">📌 Primera mitad (8 horas)</div>
+            <div><strong>Volumen:</strong> ${redondear(mitad)} ml</div>
+            <div>CC/hora: ${redondear(ccHora8)}</div>
+            <div>Gotas/min: ${redondear(gotasMin8)}</div>
+            <div class="separator"></div>
+            <div class="sub-header">📌 Segunda mitad (16 horas)</div>
+            <div><strong>Volumen:</strong> ${redondear(mitad)} ml</div>
+            <div>CC/hora: ${redondear(ccHora16)}</div>
+            <div>Gotas/min: ${redondear(gotasMin16)}</div>
+        `;
+    }
+
+    // ================================================
+    // ALGORITMO POLIELECTROLÍTICA
+    // ================================================
+    function calcularPoli() {
+        const peso = parseFloat(document.getElementById('poli-peso').value) || 0;
+        const talla = parseFloat(document.getElementById('poli-talla').value) || 0;
+        const perdidas = parseFloat(document.getElementById('poli-perdidas').value) || 0;
+        if (peso <= 0 || talla <= 0) { document.getElementById('poli-output').innerHTML = '<div style="color:#e53e3e;">Peso y talla > 0</div>'; return; }
+
+        const SC = Math.sqrt((peso * talla) / 3600);
+        const LT = 100 * peso;
+        const KCl = peso * 2;
+        const HCO3 = (peso * 2) / 0.6;
+        const AG = KCl + HCO3;
+        const LR = LT - (AG + perdidas);
+        if (LR <= 0) { document.getElementById('poli-output').innerHTML = '<div style="color:#e53e3e;">LR negativo. Revise pérdidas.</div>'; return; }
+
+        const divisor = getDivisor(LR);
+        const horas = getHoras(LT);
+        const Dex5 = LR / 2;
+        const Salina = LR / 2;
+        const filas = [
+            { label: 'DEXTROSA 5%', diario: redondear(Dex5), dosis: redondear(Dex5 / divisor) },
+            { label: 'SOL. 0,9%', diario: redondear(Salina), dosis: redondear(Salina / divisor) },
+            { label: 'KCL AL 7,5%', diario: redondear(KCl), dosis: redondear(KCl / divisor) },
+            { label: 'HCO3 AL 5%', diario: redondear(HCO3), dosis: redondear(HCO3 / divisor) }
+        ];
+        const totalDiario = Dex5 + Salina + KCl + HCO3;
+        const totalDosis = totalDiario / divisor;
+        mostrarTabla('poli-output', filas, redondear(totalDiario), redondear(totalDosis), horas);
+    }
+
+    // Cálculo inicial
+    window.onload = function() {
+        calcularHPM();
+    };
+</script>
+</body>
+</html>
