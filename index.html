@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Hidrataciones - v4</title>
+    <title>Calculadora de Hidrataciones - v5</title>
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: #f0f4f8; margin: 0; padding: 20px; }
@@ -35,10 +35,17 @@
         .separator { border-bottom: 2px solid #cbd5e0; margin: 8px 0; }
         .sub-header { font-weight: 600; color: #2d3748; margin: 10px 0 5px; }
         .info-box { background: #e8f0fe; padding: 10px 15px; border-radius: 8px; margin: 8px 0; }
+        .info-box-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 20px; }
+        .info-item { display: flex; justify-content: space-between; padding: 2px 0; }
+        .info-item .label { font-weight: 500; color: #2d3748; }
+        .info-item .value { font-weight: 700; color: #1a3b5d; }
+        .sc-value { background: #dbeafe; padding: 2px 10px; border-radius: 12px; }
+        .lt-value { background: #fef9e7; padding: 2px 10px; border-radius: 12px; border: 1px solid #f6c23e; }
         @media (max-width: 800px) {
             .grid { grid-template-columns: 1fr; }
             .input-group label { width: 100%; margin-bottom: 4px; }
             .menu button { max-width: 100%; flex: 1 1 100%; }
+            .info-box-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -197,6 +204,24 @@
         return 4; // LT >= 2000
     }
 
+    // Función para mostrar resumen con SC, LT, AG
+    function mostrarResumen(containerId, SC, LT, AG, LR) {
+        const el = document.getElementById(containerId);
+        if (!el) return;
+        el.innerHTML = `
+            <div class="info-box">
+                <div class="info-box-grid">
+                    <div class="info-item"><span class="label">SC (Superficie Corporal):</span><span class="value sc-value">${redondear(SC)} m²</span></div>
+                    <div class="info-item"><span class="label">LT (Líquido Total):</span><span class="value lt-value">${redondear(LT)} ml</span></div>
+                    <div class="info-item"><span class="label">AG (Aporte de Electrolitos):</span><span class="value">${redondear(AG)} ml</span></div>
+                    <div class="info-item"><span class="label">LR (Líquido de Reposición):</span><span class="value">${redondear(LR)} ml</span></div>
+                </div>
+            </div>
+            <div class="separator"></div>
+        `;
+        return el;
+    }
+
     // Función para mostrar tabla con dos columnas: DIARIO y DOSIS
     function mostrarTabla(containerId, filas, totalDiario, totalDosis, horas, mostrarTotales=true) {
         const el = document.getElementById(containerId);
@@ -222,11 +247,13 @@
             </div>`;
         }
 
-        el.innerHTML = html;
+        el.innerHTML += html;
+        return el;
     }
 
     // ================================================
     // ALGORITMO HPM
+    // NOTA: NaCl usa TALLA, no peso
     // ================================================
     function calcularHPM() {
         const peso = parseFloat(document.getElementById('hpm-peso').value) || 0;
@@ -237,7 +264,7 @@
         const SC = Math.sqrt((peso * talla) / 3600);
         const LT = Math.min(SC * 1500, 3000);
         const KCl = peso * 2;
-        const NaCl = (talla * 2) / 3.4;
+        const NaCl = (talla * 2) / 3.4; // ✅ FORMULA CORRECTA: usa TALLA
         const MgSO4 = peso * 0.25;
         const AG = KCl + NaCl + MgSO4;
         const LR = LT - (AG + perdidas);
@@ -248,10 +275,14 @@
         const dexDiario = LR;
         const dexDosis = LR / divisor;
 
+        // Mostrar resumen con SC, LT, AG, LR
+        const output = document.getElementById('hpm-output');
+        mostrarResumen('hpm-output', SC, LT, AG, LR);
+
         const filas = [
             { label: 'DEXTROSA 5%', diario: redondear(dexDiario), dosis: redondear(dexDosis) },
             { label: 'KCL AL 7,5%', diario: redondear(KCl), dosis: redondear(KCl / divisor) },
-            { label: 'NACL AL 20%', diario: redondear(NaCl), dosis: redondear(NaCl / divisor) },
+            { label: 'NACL AL 20% (Talla×2/3.4)', diario: redondear(NaCl), dosis: redondear(NaCl / divisor) },
             { label: 'MGSO4 AL 10%', diario: redondear(MgSO4), dosis: redondear(MgSO4 / divisor) }
         ];
         const totalDiario = dexDiario + KCl + NaCl + MgSO4;
@@ -289,6 +320,10 @@
 
         const divisor = getDivisor(LR);
         const horas = getHoras(LT);
+
+        // Mostrar resumen
+        mostrarResumen('rn-output', SC, LT, AG, LR);
+
         const filas = [
             { label: 'DEXTROSA 5%', diario: redondear(Dex5), dosis: redondear(Dex5 / divisor) },
             { label: 'DEXTROSA 10%', diario: redondear(Dex10), dosis: redondear(Dex10 / divisor) },
@@ -323,6 +358,9 @@
 
         const divisor = getDivisor(LR);
         const horas = getHoras(LT);
+
+        mostrarResumen('hol-output', SC, LT, AG, LR);
+
         const filas = [
             { label: 'DEXTROSA 5%', diario: redondear(LR), dosis: redondear(LR / divisor) },
             { label: 'KCL AL 7,5%', diario: redondear(KCl), dosis: redondear(KCl / divisor) },
@@ -384,10 +422,12 @@
         const el = document.getElementById('ceto-output');
         el.innerHTML = `
             <div class="info-box">
-                <div><strong>SC:</strong> ${redondear(SC)} m²</div>
-                <div><strong>LT:</strong> ${redondear(LT)} ml/24h</div>
-                <div><strong>AG (KCl total):</strong> ${redondear(AG)} ml</div>
-                <div><strong>LR:</strong> ${redondear(LR)} ml/24h</div>
+                <div class="info-box-grid">
+                    <div class="info-item"><span class="label">SC (Superficie Corporal):</span><span class="value sc-value">${redondear(SC)} m²</span></div>
+                    <div class="info-item"><span class="label">LT (Líquido Total):</span><span class="value lt-value">${redondear(LT)} ml</span></div>
+                    <div class="info-item"><span class="label">AG (Aporte de Electrolitos):</span><span class="value">${redondear(AG)} ml</span></div>
+                    <div class="info-item"><span class="label">LR (Líquido de Reposición):</span><span class="value">${redondear(LR)} ml</span></div>
+                </div>
             </div>
             <div class="separator"></div>
             <div class="sub-header">📌 Fase 8 horas (primeras 8h)</div>
@@ -432,9 +472,11 @@
         const el = document.getElementById('car-output');
         el.innerHTML = `
             <div class="info-box">
-                <div><strong>SC:</strong> ${redondear(SC)} m²</div>
-                <div><strong>SCQ:</strong> ${redondear(scq)} %</div>
-                <div><strong>LT (24h):</strong> ${redondear(LT)} ml</div>
+                <div class="info-box-grid">
+                    <div class="info-item"><span class="label">SC (Superficie Corporal):</span><span class="value sc-value">${redondear(SC)} m²</span></div>
+                    <div class="info-item"><span class="label">SCQ (%):</span><span class="value">${redondear(scq)} %</span></div>
+                    <div class="info-item"><span class="label">LT (Líquido Total 24h):</span><span class="value lt-value">${redondear(LT)} ml</span></div>
+                </div>
             </div>
             <div class="separator"></div>
             <div class="sub-header">📌 Primera mitad (8 horas)</div>
@@ -470,6 +512,9 @@
         const horas = getHoras(LT);
         const Dex5 = LR / 2;
         const Salina = LR / 2;
+
+        mostrarResumen('poli-output', SC, LT, AG, LR);
+
         const filas = [
             { label: 'DEXTROSA 5%', diario: redondear(Dex5), dosis: redondear(Dex5 / divisor) },
             { label: 'SOL. 0,9%', diario: redondear(Salina), dosis: redondear(Salina / divisor) },
