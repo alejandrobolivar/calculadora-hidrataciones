@@ -3,178 +3,654 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Hidrataciones - v5</title>
+    <title>Calculadora de Hidrataciones - Profesional</title>
     <style>
-        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: #f0f4f8; margin: 0; padding: 20px; }
-        .container { max-width: 1400px; margin: auto; background: white; border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); padding: 20px 30px 30px; }
-        h1 { text-align: center; color: #1a3b5d; margin-top: 0; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0; }
-        .menu { display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 0; justify-content: center; }
-        .menu button { background: #e2e8f0; border: none; padding: 10px 20px; border-radius: 30px; font-weight: 600; color: #2d3748; cursor: pointer; transition: 0.2s; font-size: 0.95rem; flex: 1 0 auto; max-width: 180px; }
-        .menu button:hover { background: #cbd5e0; transform: scale(1.02); }
-        .menu button.active { background: #1a3b5d; color: white; box-shadow: 0 4px 10px rgba(26,59,93,0.3); }
-        .sheet { display: none; animation: fade 0.3s ease; }
+        /* ===== VARIABLES ===== */
+        :root {
+            --bg-primary: #f0f4f8;
+            --bg-card: #ffffff;
+            --bg-input: #f9fafc;
+            --text-primary: #1a3b5d;
+            --text-secondary: #2d3748;
+            --border-color: #e2e8f0;
+            --shadow: 0 8px 30px rgba(0,0,0,0.1);
+            --radius: 16px;
+            --accent: #1a3b5d;
+            --accent-hover: #2b4e72;
+            --highlight: #fef9e7;
+            --info-bg: #e8f0fe;
+            --sc-bg: #dbeafe;
+            --lt-bg: #fef9e7;
+            --transition: 0.3s ease;
+            --modal-overlay: rgba(0,0,0,0.5);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a202c;
+            --bg-card: #2d3748;
+            --bg-input: #3a4458;
+            --text-primary: #e2e8f0;
+            --text-secondary: #cbd5e0;
+            --border-color: #4a5568;
+            --shadow: 0 8px 30px rgba(0,0,0,0.4);
+            --highlight: #4a3a1a;
+            --info-bg: #2a3a5c;
+            --sc-bg: #1a3a5c;
+            --lt-bg: #4a3a1a;
+            --accent: #4299e1;
+            --accent-hover: #63b3ed;
+            --modal-overlay: rgba(0,0,0,0.7);
+        }
+
+        /* ===== RESET ===== */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            padding: 20px;
+            transition: background var(--transition), color var(--transition);
+            min-height: 100vh;
+        }
+
+        /* ===== CONTENEDOR ===== */
+        .container {
+            max-width: 1400px;
+            margin: auto;
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 20px 30px 30px;
+            transition: background var(--transition);
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 12px;
+            margin-bottom: 15px;
+        }
+        .header h1 {
+            color: var(--text-primary);
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .btn-icon {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-icon:hover {
+            background: var(--accent);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        /* ===== MENU ===== */
+        .menu {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 15px 0;
+        }
+        .menu button {
+            background: var(--bg-input);
+            border: 2px solid transparent;
+            padding: 10px 18px;
+            border-radius: 30px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all var(--transition);
+            font-size: 0.9rem;
+            flex: 1 0 auto;
+            max-width: 180px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .menu button:hover {
+            background: var(--border-color);
+            transform: translateY(-2px);
+        }
+        .menu button.active {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 4px 12px rgba(26,59,93,0.3);
+            border-color: var(--accent);
+        }
+
+        /* ===== SHEETS ===== */
+        .sheet {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
         .sheet.active { display: block; }
-        @keyframes fade { from { opacity: 0.4; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 30px; margin-top: 20px; }
-        .inputs, .results { background: #f9fafc; padding: 20px 25px; border-radius: 12px; border: 1px solid #e2e8f0; }
-        .inputs h3, .results h3 { margin-top: 0; color: #1a3b5d; border-bottom: 1px solid #dce3eb; padding-bottom: 10px; }
-        .input-group { margin-bottom: 12px; display: flex; align-items: center; flex-wrap: wrap; }
-        .input-group label { width: 160px; font-weight: 500; color: #2d3748; font-size: 0.9rem; }
-        .input-group input { flex: 1; min-width: 100px; padding: 6px 10px; border: 1px solid #cbd5e0; border-radius: 8px; font-size: 0.95rem; background: white; transition: 0.2s; }
-        .input-group input:focus { border-color: #1a3b5d; outline: none; box-shadow: 0 0 0 3px rgba(26,59,93,0.2); }
-        .btn-calc { background: #1a3b5d; color: white; border: none; padding: 12px 30px; border-radius: 30px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: 0.2s; margin-top: 10px; width: 100%; }
-        .btn-calc:hover { background: #2b4e72; transform: scale(1.01); }
-        .table-wrap { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
-        th { background: #edf2f7; color: #1a3b5d; padding: 8px 12px; text-align: left; border-bottom: 2px solid #cbd5e0; }
-        td { padding: 6px 12px; border-bottom: 1px solid #e2e8f0; }
-        .total-row { background: #fef9e7; font-weight: 600; }
-        .value-col { text-align: right; font-weight: 500; color: #1a3b5d; }
-        .highlight { background: #fef9e7; }
-        .separator { border-bottom: 2px solid #cbd5e0; margin: 8px 0; }
-        .sub-header { font-weight: 600; color: #2d3748; margin: 10px 0 5px; }
-        .info-box { background: #e8f0fe; padding: 10px 15px; border-radius: 8px; margin: 8px 0; }
-        .info-box-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 20px; }
-        .info-item { display: flex; justify-content: space-between; padding: 2px 0; }
-        .info-item .label { font-weight: 500; color: #2d3748; }
-        .info-item .value { font-weight: 700; color: #1a3b5d; }
-        .sc-value { background: #dbeafe; padding: 2px 10px; border-radius: 12px; }
-        .lt-value { background: #fef9e7; padding: 2px 10px; border-radius: 12px; border: 1px solid #f6c23e; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== GRID ===== */
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 30px;
+            margin-top: 15px;
+        }
+        .inputs, .results {
+            background: var(--bg-input);
+            padding: 20px 25px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            transition: background var(--transition);
+        }
+        .inputs h3, .results h3 {
+            margin-top: 0;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ===== INPUTS ===== */
+        .input-group {
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .input-group label {
+            width: 160px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        .input-group input {
+            flex: 1;
+            min-width: 100px;
+            padding: 8px 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            transition: all var(--transition);
+        }
+        .input-group input:focus {
+            border-color: var(--accent);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(26,59,93,0.2);
+        }
+        .input-group input::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.5;
+        }
+
+        /* ===== BOTONES ===== */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .btn-calc {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all var(--transition);
+            flex: 2;
+        }
+        .btn-calc:hover {
+            background: var(--accent-hover);
+            transform: scale(1.02);
+        }
+        .btn-clear {
+            background: var(--border-color);
+            color: var(--text-secondary);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            flex: 1;
+        }
+        .btn-clear:hover {
+            background: #e53e3e;
+            color: white;
+        }
+
+        /* ===== RESULTADOS ===== */
+        .info-box {
+            background: var(--info-bg);
+            padding: 12px 18px;
+            border-radius: 8px;
+            margin: 8px 0;
+            transition: background var(--transition);
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px 20px;
+        }
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 3px 0;
+            font-size: 0.95rem;
+        }
+        .info-item .label {
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        .info-item .value {
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .sc-value { background: var(--sc-bg); padding: 0 12px; border-radius: 12px; }
+        .lt-value { background: var(--lt-bg); padding: 0 12px; border-radius: 12px; border: 1px solid #f6c23e; }
+
+        /* ===== TABLA ===== */
+        .table-wrap { overflow-x: auto; margin-top: 10px; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+        th {
+            background: var(--border-color);
+            color: var(--text-primary);
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 2px solid var(--text-secondary);
+        }
+        td {
+            padding: 6px 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .total-row { background: var(--highlight); font-weight: 600; }
+        .value-col { text-align: right; font-weight: 500; }
+        .separator { border-bottom: 2px solid var(--border-color); margin: 10px 0; }
+        .sub-header { font-weight: 600; color: var(--text-secondary); margin: 10px 0 5px; font-size: 1.05rem; }
+
+        /* ===== INFUSIÓN ===== */
+        .infusion-box {
+            margin-top: 15px;
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+            background: var(--info-bg);
+            padding: 12px 18px;
+            border-radius: 8px;
+            transition: background var(--transition);
+        }
+        .infusion-box strong { color: var(--text-secondary); }
+        .infusion-box span { font-weight: 700; color: var(--text-primary); }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--accent);
+            color: white;
+            padding: 14px 24px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.4s ease;
+            z-index: 999;
+            font-weight: 500;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ===== MODAL ACERCA DE ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--modal-overlay);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+        .modal-overlay.show {
+            display: flex;
+        }
+        .modal {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 35px 40px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideUp 0.4s ease;
+            position: relative;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all var(--transition);
+        }
+        .modal-close:hover {
+            color: #e53e3e;
+            transform: rotate(90deg);
+        }
+        .modal h2 {
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .modal .author {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .modal .author:last-child {
+            border-bottom: none;
+        }
+        .modal .author .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .modal .author .info {
+            flex: 1;
+        }
+        .modal .author .info .name {
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 1.05rem;
+        }
+        .modal .author .info .role {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .modal .version {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color);
+        }
+        .modal .version strong {
+            color: var(--text-primary);
+        }
+
+        /* ===== RESPONSIVE ===== */
         @media (max-width: 800px) {
             .grid { grid-template-columns: 1fr; }
             .input-group label { width: 100%; margin-bottom: 4px; }
             .menu button { max-width: 100%; flex: 1 1 100%; }
-            .info-box-grid { grid-template-columns: 1fr; }
+            .info-grid { grid-template-columns: 1fr; }
+            .header { flex-direction: column; align-items: stretch; }
+            .header-actions { justify-content: center; }
+            .container { padding: 15px; }
+            .modal { padding: 25px 20px; }
+        }
+        @media print {
+            .menu, .btn-group, .btn-icon { display: none !important; }
+            .container { box-shadow: none !important; border: 1px solid #ccc; }
+            .modal-overlay { display: none !important; }
         }
     </style>
 </head>
 <body>
+
 <div class="container">
-    <h1>💧 Calculadora de Hidrataciones</h1>
-    <div class="menu" id="menuButtons">
-        <button class="active" data-sheet="hpm">HPM</button>
-        <button data-sheet="rn">Recién Nacido</button>
-        <button data-sheet="holliday">Holliday</button>
-        <button data-sheet="ceto">Cetoacidosis</button>
-        <button data-sheet="carvajal">Carvajal</button>
-        <button data-sheet="poli">Polielectrolítica</button>
+    <!-- HEADER -->
+    <div class="header">
+        <h1>💧 Calculadora de Hidrataciones</h1>
+        <div class="header-actions">
+            <button class="btn-icon" onclick="copiarResultados()" title="Copiar resultados al portapapeles">📋 Copiar</button>
+            <button class="btn-icon" onclick="window.print()" title="Imprimir o guardar como PDF">🖨️ PDF</button>
+            <button class="btn-icon" onclick="toggleTheme()" id="themeToggle" title="Cambiar tema">🌙</button>
+            <button class="btn-icon" onclick="abrirModal()" title="Acerca de">ℹ️</button>
+        </div>
     </div>
 
-    <!-- =============== HPM =============== -->
+    <!-- MENU -->
+    <div class="menu" id="menuButtons">
+        <button class="active" data-sheet="hpm">📊 HPM</button>
+        <button data-sheet="rn">👶 Recién Nacido</button>
+        <button data-sheet="holliday">📈 Holliday</button>
+        <button data-sheet="ceto">🩸 Cetoacidosis</button>
+        <button data-sheet="carvajal">🔥 Carvajal</button>
+        <button data-sheet="poli">🧪 Polielectrolítica</button>
+    </div>
+
+    <!-- ===== HPM ===== -->
     <div id="sheet-hpm" class="sheet active">
         <h2>Hidratación de Mantenimiento (HPM)</h2>
         <div class="grid">
             <div class="inputs">
-                <h3>Datos de entrada</h3>
-                <div class="input-group"><label>Peso (kg)</label><input type="number" id="hpm-peso" step="0.1" value="70"></div>
-                <div class="input-group"><label>Talla (cm)</label><input type="number" id="hpm-talla" step="0.1" value="170"></div>
-                <div class="input-group"><label>Pérdidas / DIL (ml)</label><input type="number" id="hpm-perdidas" step="1" value="0"></div>
-                <button class="btn-calc" onclick="calcularHPM()">Calcular</button>
+                <h3>📝 Datos de entrada</h3>
+                <div class="input-group"><label>Peso (kg)</label><input type="number" id="hpm-peso" step="0.1" value="70" placeholder="Ej: 70"></div>
+                <div class="input-group"><label>Talla (cm)</label><input type="number" id="hpm-talla" step="0.1" value="170" placeholder="Ej: 170"></div>
+                <div class="input-group"><label>Pérdidas / DIL (ml)</label><input type="number" id="hpm-perdidas" step="1" value="0" placeholder="Ej: 0"></div>
+                <div class="btn-group">
+                    <button class="btn-calc" onclick="calcularHPM()">🔢 Calcular</button>
+                    <button class="btn-clear" onclick="limpiar('hpm')">✖️ Limpiar</button>
+                </div>
             </div>
             <div class="results" id="hpm-results">
-                <h3>Resultados</h3>
-                <div id="hpm-output">Complete los datos y presione Calcular.</div>
+                <h3>📊 Resultados</h3>
+                <div id="hpm-output">Complete los datos y presione <strong>Calcular</strong>.</div>
             </div>
         </div>
     </div>
 
-    <!-- =============== RN =============== -->
+    <!-- ===== RN ===== -->
     <div id="sheet-rn" class="sheet">
         <h2>Recién Nacido (&lt; 6 kg)</h2>
         <div class="grid">
             <div class="inputs">
-                <h3>Datos de entrada</h3>
+                <h3>📝 Datos de entrada</h3>
                 <div class="input-group"><label>Peso (kg)</label><input type="number" id="rn-peso" step="0.01" value="3.5"></div>
                 <div class="input-group"><label>Talla (cm)</label><input type="number" id="rn-talla" step="0.1" value="50"></div>
                 <div class="input-group"><label>RH (ml/kg/día)</label><input type="number" id="rn-rh" step="1" value="80"></div>
                 <div class="input-group"><label>VIG (mg/dL)</label><input type="number" id="rn-vig" step="1" value="90"></div>
                 <div class="input-group"><label>Pérdidas / DIL (ml)</label><input type="number" id="rn-perdidas" step="1" value="0"></div>
-                <button class="btn-calc" onclick="calcularRN()">Calcular</button>
+                <div class="btn-group">
+                    <button class="btn-calc" onclick="calcularRN()">🔢 Calcular</button>
+                    <button class="btn-clear" onclick="limpiar('rn')">✖️ Limpiar</button>
+                </div>
             </div>
             <div class="results" id="rn-results">
-                <h3>Resultados</h3>
-                <div id="rn-output">Complete los datos y presione Calcular.</div>
+                <h3>📊 Resultados</h3>
+                <div id="rn-output">Complete los datos y presione <strong>Calcular</strong>.</div>
             </div>
         </div>
     </div>
 
-    <!-- =============== HOLLIDAY =============== -->
+    <!-- ===== HOLLIDAY ===== -->
     <div id="sheet-holliday" class="sheet">
         <h2>Holliday (&lt; 10 kg)</h2>
         <div class="grid">
             <div class="inputs">
-                <h3>Datos de entrada</h3>
+                <h3>📝 Datos de entrada</h3>
                 <div class="input-group"><label>Peso (kg)</label><input type="number" id="hol-peso" step="0.1" value="8"></div>
                 <div class="input-group"><label>Talla (cm)</label><input type="number" id="hol-talla" step="0.1" value="70"></div>
                 <div class="input-group"><label>Pérdidas / DIL (ml)</label><input type="number" id="hol-perdidas" step="1" value="0"></div>
-                <button class="btn-calc" onclick="calcularHolliday()">Calcular</button>
+                <div class="btn-group">
+                    <button class="btn-calc" onclick="calcularHolliday()">🔢 Calcular</button>
+                    <button class="btn-clear" onclick="limpiar('hol')">✖️ Limpiar</button>
+                </div>
             </div>
             <div class="results" id="hol-results">
-                <h3>Resultados</h3>
-                <div id="hol-output">Complete los datos y presione Calcular.</div>
+                <h3>📊 Resultados</h3>
+                <div id="hol-output">Complete los datos y presione <strong>Calcular</strong>.</div>
             </div>
         </div>
     </div>
 
-    <!-- =============== CETOACIDOSIS =============== -->
+    <!-- ===== CETOACIDOSIS ===== -->
     <div id="sheet-ceto" class="sheet">
         <h2>Cetoacidosis Diabética</h2>
         <div class="grid">
             <div class="inputs">
-                <h3>Datos de entrada</h3>
+                <h3>📝 Datos de entrada</h3>
                 <div class="input-group"><label>Peso (kg)</label><input type="number" id="ceto-peso" step="0.1" value="60"></div>
                 <div class="input-group"><label>Talla (cm)</label><input type="number" id="ceto-talla" step="0.1" value="160"></div>
                 <div class="input-group"><label>Glicemia (mg/dL)</label><input type="number" id="ceto-glicemia" step="1" value="300"></div>
                 <div class="input-group"><label>Pérdidas / DIL (ml)</label><input type="number" id="ceto-perdidas" step="1" value="0"></div>
-                <button class="btn-calc" onclick="calcularCeto()">Calcular</button>
+                <div class="btn-group">
+                    <button class="btn-calc" onclick="calcularCeto()">🔢 Calcular</button>
+                    <button class="btn-clear" onclick="limpiar('ceto')">✖️ Limpiar</button>
+                </div>
             </div>
             <div class="results" id="ceto-results">
-                <h3>Resultados</h3>
-                <div id="ceto-output">Complete los datos y presione Calcular.</div>
+                <h3>📊 Resultados</h3>
+                <div id="ceto-output">Complete los datos y presione <strong>Calcular</strong>.</div>
             </div>
         </div>
     </div>
 
-    <!-- =============== CARVAJAL =============== -->
+    <!-- ===== CARVAJAL ===== -->
     <div id="sheet-carvajal" class="sheet">
         <h2>Carvajal (Gran Quemado SCQ &gt; 10%)</h2>
         <div class="grid">
             <div class="inputs">
-                <h3>Datos de entrada</h3>
+                <h3>📝 Datos de entrada</h3>
                 <div class="input-group"><label>Peso (kg)</label><input type="number" id="car-peso" step="0.1" value="70"></div>
                 <div class="input-group"><label>Talla (cm)</label><input type="number" id="car-talla" step="0.1" value="170"></div>
                 <div class="input-group"><label>SCQ (%)</label><input type="number" id="car-scq" step="0.1" value="20"></div>
-                <button class="btn-calc" onclick="calcularCarvajal()">Calcular</button>
+                <div class="btn-group">
+                    <button class="btn-calc" onclick="calcularCarvajal()">🔢 Calcular</button>
+                    <button class="btn-clear" onclick="limpiar('car')">✖️ Limpiar</button>
+                </div>
             </div>
             <div class="results" id="car-results">
-                <h3>Resultados</h3>
-                <div id="car-output">Complete los datos y presione Calcular.</div>
+                <h3>📊 Resultados</h3>
+                <div id="car-output">Complete los datos y presione <strong>Calcular</strong>.</div>
             </div>
         </div>
     </div>
 
-    <!-- =============== POLIELECTROLÍTICA =============== -->
+    <!-- ===== POLI ===== -->
     <div id="sheet-poli" class="sheet">
         <h2>Solución Polielectrolítica</h2>
         <div class="grid">
             <div class="inputs">
-                <h3>Datos de entrada</h3>
+                <h3>📝 Datos de entrada</h3>
                 <div class="input-group"><label>Peso (kg)</label><input type="number" id="poli-peso" step="0.1" value="70"></div>
                 <div class="input-group"><label>Talla (cm)</label><input type="number" id="poli-talla" step="0.1" value="170"></div>
                 <div class="input-group"><label>Pérdidas / DIL (ml)</label><input type="number" id="poli-perdidas" step="1" value="0"></div>
-                <button class="btn-calc" onclick="calcularPoli()">Calcular</button>
+                <div class="btn-group">
+                    <button class="btn-calc" onclick="calcularPoli()">🔢 Calcular</button>
+                    <button class="btn-clear" onclick="limpiar('poli')">✖️ Limpiar</button>
+                </div>
             </div>
             <div class="results" id="poli-results">
-                <h3>Resultados</h3>
-                <div id="poli-output">Complete los datos y presione Calcular.</div>
+                <h3>📊 Resultados</h3>
+                <div id="poli-output">Complete los datos y presione <strong>Calcular</strong>.</div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- ===== MODAL ACERCA DE ===== -->
+<div class="modal-overlay" id="modalAbout">
+    <div class="modal">
+        <button class="modal-close" onclick="cerrarModal()">✕</button>
+        <h2>ℹ️ Acerca de</h2>
+        
+        <div class="author">
+            <div class="avatar">👩‍⚕️</div>
+            <div class="info">
+                <div class="name">Dra. Rouslymar Bolívar</div>
+                <div class="role">👩‍⚕️ Creadora y Supervisora Médica</div>
+                <div class="role" style="font-size:0.8rem; color:var(--text-secondary);">Especialista en Pediatría y Neonatología</div>
+            </div>
+        </div>
+        
+        <div class="author">
+            <div class="avatar">👨‍💻</div>
+            <div class="info">
+                <div class="name">MSc. Ing. Alejandro Bolívar</div>
+                <div class="role">💻 Desarrollador de Software</div>
+                <div class="role" style="font-size:0.8rem; color:var(--text-secondary);">Ingeniero de Sistemas - MSc. en Ingeniería de Software</div>
+            </div>
+        </div>
+        
+        <div class="version">
+            <strong>Versión 5.0</strong> — Calculadora de Hidrataciones<br>
+            Basada en fórmulas del libro <em>"Cálculo de Hidrataciones"</em> (Excel)<br>
+            <span style="font-size:0.8rem; opacity:0.7;">© 2026 - Todos los derechos reservados</span>
+        </div>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">✅ Resultados copiados al portapapeles</div>
+
 <script>
-    // Navegación
+    // =============================================
+    // NAVEGACIÓN
+    // =============================================
     document.querySelectorAll('#menuButtons button').forEach(btn => {
         btn.addEventListener('click', function() {
             document.querySelectorAll('#menuButtons button').forEach(b => b.classList.remove('active'));
@@ -184,37 +660,127 @@
         });
     });
 
-    function redondear(v, d=2) { if (isNaN(v) || !isFinite(v)) return '---'; return Number(v.toFixed(d)); }
+    // =============================================
+    // MODAL ACERCA DE
+    // =============================================
+    function abrirModal() {
+        document.getElementById('modalAbout').classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+    function cerrarModal() {
+        document.getElementById('modalAbout').classList.remove('show');
+        document.body.style.overflow = '';
+    }
+    // Cerrar modal al hacer clic fuera
+    document.getElementById('modalAbout').addEventListener('click', function(e) {
+        if (e.target === this) cerrarModal();
+    });
+    // Cerrar con tecla ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') cerrarModal();
+    });
 
-    // Función para calcular el factor divisor según LR (C9)
+    // =============================================
+    // TEMA OSCURO
+    // =============================================
+    let darkMode = false;
+    function toggleTheme() {
+        darkMode = !darkMode;
+        document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+        document.getElementById('themeToggle').textContent = darkMode ? '☀️' : '🌙';
+        localStorage.setItem('theme', darkMode ? 'dark' : 'light');
+    }
+    if (localStorage.getItem('theme') === 'dark') {
+        darkMode = true;
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.getElementById('themeToggle').textContent = '☀️';
+    }
+
+    // =============================================
+    // UTILIDADES
+    // =============================================
+    function redondear(v, d=2) {
+        if (isNaN(v) || !isFinite(v)) return '---';
+        return Number(v.toFixed(d));
+    }
+
     function getDivisor(LR) {
         if (LR < 500) return 1;
         if (LR < 1000) return 2;
         if (LR < 1500) return 3;
         if (LR < 2000) return 4;
-        return 6; // LR >= 2000
+        return 6;
     }
 
-    // Función para calcular las horas según LT
     function getHoras(LT) {
         if (LT < 500) return 24;
         if (LT < 1000) return 12;
         if (LT < 1500) return 8;
         if (LT < 2000) return 6;
-        return 4; // LT >= 2000
+        return 4;
     }
 
-    // Función para mostrar resumen con SC, LT, AG
-    function mostrarResumen(containerId, SC, LT, AG, LR) {
+    function limpiar(prefix) {
+        const ids = {
+            hpm: ['hpm-peso', 'hpm-talla', 'hpm-perdidas'],
+            rn: ['rn-peso', 'rn-talla', 'rn-rh', 'rn-vig', 'rn-perdidas'],
+            hol: ['hol-peso', 'hol-talla', 'hol-perdidas'],
+            ceto: ['ceto-peso', 'ceto-talla', 'ceto-glicemia', 'ceto-perdidas'],
+            car: ['car-peso', 'car-talla', 'car-scq'],
+            poli: ['poli-peso', 'poli-talla', 'poli-perdidas']
+        };
+        const outputMap = { hpm: 'hpm-output', rn: 'rn-output', hol: 'hol-output', ceto: 'ceto-output', car: 'car-output', poli: 'poli-output' };
+        
+        (ids[prefix] || []).forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = (id.includes('perdidas') || id.includes('scq')) ? '0' : '';
+        });
+        const out = document.getElementById(outputMap[prefix]);
+        if (out) out.innerHTML = 'Complete los datos y presione <strong>Calcular</strong>.';
+        showToast('🧹 Campos limpiados');
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        clearTimeout(t._timeout);
+        t._timeout = setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    function copiarResultados() {
+        const activeSheet = document.querySelector('.sheet.active');
+        const texto = activeSheet.innerText.trim();
+        if (texto) {
+            navigator.clipboard.writeText(texto).then(() => {
+                showToast('📋 Resultados copiados al portapapeles');
+            }).catch(() => {
+                const range = document.createRange();
+                range.selectNode(activeSheet);
+                window.getSelection().removeAllRanges();
+                window.getSelection().addRange(range);
+                document.execCommand('copy');
+                showToast('📋 Resultados copiados al portapapeles');
+            });
+        } else {
+            showToast('⚠️ No hay resultados para copiar');
+        }
+    }
+
+    // =============================================
+    // RENDERIZADOR
+    // =============================================
+    function mostrarResumen(containerId, SC, LT, AG, LR, extra = '') {
         const el = document.getElementById(containerId);
         if (!el) return;
         el.innerHTML = `
             <div class="info-box">
-                <div class="info-box-grid">
+                <div class="info-grid">
                     <div class="info-item"><span class="label">SC (Superficie Corporal):</span><span class="value sc-value">${redondear(SC)} m²</span></div>
                     <div class="info-item"><span class="label">LT (Líquido Total):</span><span class="value lt-value">${redondear(LT)} ml</span></div>
                     <div class="info-item"><span class="label">AG (Aporte de Electrolitos):</span><span class="value">${redondear(AG)} ml</span></div>
                     <div class="info-item"><span class="label">LR (Líquido de Reposición):</span><span class="value">${redondear(LR)} ml</span></div>
+                    ${extra}
                 </div>
             </div>
             <div class="separator"></div>
@@ -222,8 +788,7 @@
         return el;
     }
 
-    // Función para mostrar tabla con dos columnas: DIARIO y DOSIS
-    function mostrarTabla(containerId, filas, totalDiario, totalDosis, horas, mostrarTotales=true) {
+    function mostrarTabla(containerId, filas, totalDiario, totalDosis, horas) {
         const el = document.getElementById(containerId);
         if (!el) return;
         let html = `<div class="table-wrap"><table>
@@ -231,75 +796,80 @@
         for (let f of filas) {
             html += `<tr><td>${f.label}</td><td class="value-col">${f.diario}</td><td class="value-col">${f.dosis}</td></tr>`;
         }
-        if (mostrarTotales) {
-            html += `<tr class="total-row"><td>TOTAL</td><td class="value-col">${totalDiario}</td><td class="value-col">${totalDosis}</td></tr>`;
-        }
+        html += `<tr class="total-row"><td>TOTAL</td><td class="value-col">${totalDiario}</td><td class="value-col">${totalDosis}</td></tr>`;
         html += `</table></div>`;
 
-        // CC/HORA y GOTAS/MIN
         if (horas > 0) {
             const ccHora = totalDosis / horas;
             const gotasMin = ccHora / 3;
-            html += `<div style="margin-top:15px; display:flex; gap:30px; flex-wrap:wrap; background:#e8f0fe; padding:10px 15px; border-radius:8px;">
-                <div><strong>HORAS:</strong> ${redondear(horas)}</div>
-                <div><strong>CC/HORA:</strong> ${redondear(ccHora)}</div>
-                <div><strong>GOTAS/MIN:</strong> ${redondear(gotasMin)}</div>
-            </div>`;
+            html += `
+                <div class="infusion-box">
+                    <div><strong>⏱️ HORAS:</strong> <span>${redondear(horas)}</span></div>
+                    <div><strong>💧 CC/HORA:</strong> <span>${redondear(ccHora)}</span></div>
+                    <div><strong>🔄 GOTAS/MIN:</strong> <span>${redondear(gotasMin)}</span></div>
+                </div>
+            `;
         }
-
         el.innerHTML += html;
         return el;
     }
 
-    // ================================================
-    // ALGORITMO HPM
-    // NOTA: NaCl usa TALLA, no peso
-    // ================================================
+    // =============================================
+    // ALGORITMOS
+    // =============================================
+
+    // ----- HPM (NaCl usa TALLA) -----
     function calcularHPM() {
         const peso = parseFloat(document.getElementById('hpm-peso').value) || 0;
         const talla = parseFloat(document.getElementById('hpm-talla').value) || 0;
         const perdidas = parseFloat(document.getElementById('hpm-perdidas').value) || 0;
-        if (peso <= 0 || talla <= 0) { document.getElementById('hpm-output').innerHTML = '<div style="color:#e53e3e;">Peso y talla > 0</div>'; return; }
+        if (peso <= 0 || talla <= 0) {
+            document.getElementById('hpm-output').innerHTML = '<div style="color:#e53e3e;">⚠️ Peso y talla deben ser > 0</div>';
+            return;
+        }
 
         const SC = Math.sqrt((peso * talla) / 3600);
         const LT = Math.min(SC * 1500, 3000);
         const KCl = peso * 2;
-        const NaCl = (peso * 2) / 3.4;
+        const NaCl = (talla * 2) / 3.4;
         const MgSO4 = peso * 0.25;
         const AG = KCl + NaCl + MgSO4;
         const LR = LT - (AG + perdidas);
-        if (LR <= 0) { document.getElementById('hpm-output').innerHTML = '<div style="color:#e53e3e;">LR negativo. Revise pérdidas.</div>'; return; }
+        if (LR <= 0) {
+            document.getElementById('hpm-output').innerHTML = '<div style="color:#e53e3e;">⚠️ LR negativo. Revise pérdidas.</div>';
+            return;
+        }
 
         const divisor = getDivisor(LR);
         const horas = getHoras(LT);
         const dexDiario = LR;
         const dexDosis = LR / divisor;
 
-        // Mostrar resumen con SC, LT, AG, LR
-        const output = document.getElementById('hpm-output');
         mostrarResumen('hpm-output', SC, LT, AG, LR);
 
         const filas = [
             { label: 'DEXTROSA 5%', diario: redondear(dexDiario), dosis: redondear(dexDosis) },
             { label: 'KCL AL 7,5%', diario: redondear(KCl), dosis: redondear(KCl / divisor) },
-            { label: 'NACL AL 20%', diario: redondear(NaCl), dosis: redondear(NaCl / divisor) },
+            { label: 'NACL AL 20% (Talla×2/3.4)', diario: redondear(NaCl), dosis: redondear(NaCl / divisor) },
             { label: 'MGSO4 AL 10%', diario: redondear(MgSO4), dosis: redondear(MgSO4 / divisor) }
         ];
         const totalDiario = dexDiario + KCl + NaCl + MgSO4;
         const totalDosis = totalDiario / divisor;
         mostrarTabla('hpm-output', filas, redondear(totalDiario), redondear(totalDosis), horas);
+        showToast('✅ Cálculo HPM completado');
     }
 
-    // ================================================
-    // ALGORITMO RN
-    // ================================================
+    // ----- RN -----
     function calcularRN() {
         const peso = parseFloat(document.getElementById('rn-peso').value) || 0;
         const talla = parseFloat(document.getElementById('rn-talla').value) || 0;
         const rh = parseFloat(document.getElementById('rn-rh').value) || 0;
         const vig = parseFloat(document.getElementById('rn-vig').value) || 0;
         const perdidas = parseFloat(document.getElementById('rn-perdidas').value) || 0;
-        if (peso <= 0 || talla <= 0 || rh <= 0) { document.getElementById('rn-output').innerHTML = '<div style="color:#e53e3e;">Peso, talla y RH > 0</div>'; return; }
+        if (peso <= 0 || talla <= 0 || rh <= 0) {
+            document.getElementById('rn-output').innerHTML = '<div style="color:#e53e3e;">⚠️ Peso, talla y RH > 0</div>';
+            return;
+        }
 
         const SC = Math.sqrt((peso * talla) / 3600);
         const LT = rh * peso;
@@ -309,7 +879,10 @@
         const Ca = peso * 2;
         const AG = KCl + NaCl + MgSO4 + Ca;
         const LR = LT - (AG + perdidas);
-        if (LR <= 0) { document.getElementById('rn-output').innerHTML = '<div style="color:#e53e3e;">LR negativo. Revise pérdidas.</div>'; return; }
+        if (LR <= 0) {
+            document.getElementById('rn-output').innerHTML = '<div style="color:#e53e3e;">⚠️ LR negativo. Revise pérdidas.</div>';
+            return;
+        }
 
         const GG = vig * peso * 1.44;
         const TG = (GG * 100) / LR;
@@ -321,8 +894,10 @@
         const divisor = getDivisor(LR);
         const horas = getHoras(LT);
 
-        // Mostrar resumen
-        mostrarResumen('rn-output', SC, LT, AG, LR);
+        mostrarResumen('rn-output', SC, LT, AG, LR,
+            `<div class="info-item"><span class="label">GG (Glicemia calculada):</span><span class="value">${redondear(GG)}</span></div>
+             <div class="info-item"><span class="label">TG (Glicemia total):</span><span class="value">${redondear(TG)}</span></div>`
+        );
 
         const filas = [
             { label: 'DEXTROSA 5%', diario: redondear(Dex5), dosis: redondear(Dex5 / divisor) },
@@ -335,16 +910,18 @@
         const totalDiario = Dex5 + KCl + NaCl + MgSO4 + Ca;
         const totalDosis = totalDiario / divisor;
         mostrarTabla('rn-output', filas, redondear(totalDiario), redondear(totalDosis), horas);
+        showToast('✅ Cálculo RN completado');
     }
 
-    // ================================================
-    // ALGORITMO HOLLIDAY
-    // ================================================
+    // ----- HOLLIDAY -----
     function calcularHolliday() {
         const peso = parseFloat(document.getElementById('hol-peso').value) || 0;
         const talla = parseFloat(document.getElementById('hol-talla').value) || 0;
         const perdidas = parseFloat(document.getElementById('hol-perdidas').value) || 0;
-        if (peso <= 0 || talla <= 0) { document.getElementById('hol-output').innerHTML = '<div style="color:#e53e3e;">Peso y talla > 0</div>'; return; }
+        if (peso <= 0 || talla <= 0) {
+            document.getElementById('hol-output').innerHTML = '<div style="color:#e53e3e;">⚠️ Peso y talla > 0</div>';
+            return;
+        }
 
         const SC = Math.sqrt((peso * talla) / 3600);
         const LT = 100 * peso;
@@ -354,7 +931,10 @@
         const Ca = peso * 2;
         const AG = KCl + NaCl + MgSO4 + Ca;
         const LR = LT - (AG + perdidas);
-        if (LR <= 0) { document.getElementById('hol-output').innerHTML = '<div style="color:#e53e3e;">LR negativo. Revise pérdidas.</div>'; return; }
+        if (LR <= 0) {
+            document.getElementById('hol-output').innerHTML = '<div style="color:#e53e3e;">⚠️ LR negativo. Revise pérdidas.</div>';
+            return;
+        }
 
         const divisor = getDivisor(LR);
         const horas = getHoras(LT);
@@ -371,23 +951,28 @@
         const totalDiario = LR + KCl + NaCl + MgSO4 + Ca;
         const totalDosis = totalDiario / divisor;
         mostrarTabla('hol-output', filas, redondear(totalDiario), redondear(totalDosis), horas);
+        showToast('✅ Cálculo Holliday completado');
     }
 
-    // ================================================
-    // ALGORITMO CETOACIDOSIS
-    // ================================================
+    // ----- CETOACIDOSIS -----
     function calcularCeto() {
         const peso = parseFloat(document.getElementById('ceto-peso').value) || 0;
         const talla = parseFloat(document.getElementById('ceto-talla').value) || 0;
         const glicemia = parseFloat(document.getElementById('ceto-glicemia').value) || 0;
         const perdidas = parseFloat(document.getElementById('ceto-perdidas').value) || 0;
-        if (peso <= 0 || talla <= 0 || glicemia <= 0) { document.getElementById('ceto-output').innerHTML = '<div style="color:#e53e3e;">Peso, talla y glicemia > 0</div>'; return; }
+        if (peso <= 0 || talla <= 0 || glicemia <= 0) {
+            document.getElementById('ceto-output').innerHTML = '<div style="color:#e53e3e;">⚠️ Peso, talla y glicemia > 0</div>';
+            return;
+        }
 
         const SC = Math.sqrt((peso * talla) / 3600);
         const LT = 4000 * SC;
         const AG = peso * 2;
         const LR = LT - (AG + perdidas);
-        if (LR <= 0) { document.getElementById('ceto-output').innerHTML = '<div style="color:#e53e3e;">LR negativo. Revise pérdidas.</div>'; return; }
+        if (LR <= 0) {
+            document.getElementById('ceto-output').innerHTML = '<div style="color:#e53e3e;">⚠️ LR negativo. Revise pérdidas.</div>';
+            return;
+        }
 
         const KCl = peso * 2;
         const fase8 = LR / 2;
@@ -395,21 +980,14 @@
 
         let sol8, dex8, sol16, dex16;
         if (glicemia > 250) {
-            sol8 = fase8 - KCl;
-            sol16 = fase16 - KCl;
-            if (sol8 < 0) sol8 = 0;
-            if (sol16 < 0) sol16 = 0;
-            dex8 = 0;
-            dex16 = 0;
+            sol8 = fase8 - KCl; if (sol8 < 0) sol8 = 0;
+            sol16 = fase16 - KCl; if (sol16 < 0) sol16 = 0;
+            dex8 = 0; dex16 = 0;
         } else {
-            let base8 = fase8 - KCl;
-            let base16 = fase16 - KCl;
-            if (base8 < 0) base8 = 0;
-            if (base16 < 0) base16 = 0;
-            sol8 = base8 / 2;
-            dex8 = base8 / 2;
-            sol16 = base16 / 2;
-            dex16 = base16 / 2;
+            let base8 = fase8 - KCl; if (base8 < 0) base8 = 0;
+            let base16 = fase16 - KCl; if (base16 < 0) base16 = 0;
+            sol8 = base8 / 2; dex8 = base8 / 2;
+            sol16 = base16 / 2; dex16 = base16 / 2;
         }
 
         const total8 = sol8 + dex8 + KCl;
@@ -422,11 +1000,12 @@
         const el = document.getElementById('ceto-output');
         el.innerHTML = `
             <div class="info-box">
-                <div class="info-box-grid">
-                    <div class="info-item"><span class="label">SC (Superficie Corporal):</span><span class="value sc-value">${redondear(SC)} m²</span></div>
-                    <div class="info-item"><span class="label">LT (Líquido Total):</span><span class="value lt-value">${redondear(LT)} ml</span></div>
-                    <div class="info-item"><span class="label">AG (Aporte de Electrolitos):</span><span class="value">${redondear(AG)} ml</span></div>
-                    <div class="info-item"><span class="label">LR (Líquido de Reposición):</span><span class="value">${redondear(LR)} ml</span></div>
+                <div class="info-grid">
+                    <div class="info-item"><span class="label">SC:</span><span class="value sc-value">${redondear(SC)} m²</span></div>
+                    <div class="info-item"><span class="label">LT:</span><span class="value lt-value">${redondear(LT)} ml</span></div>
+                    <div class="info-item"><span class="label">AG (KCl total):</span><span class="value">${redondear(AG)} ml</span></div>
+                    <div class="info-item"><span class="label">LR:</span><span class="value">${redondear(LR)} ml</span></div>
+                    <div class="info-item"><span class="label">Glicemia > 250?:</span><span class="value">${glicemia > 250 ? '✅ Sí' : '❌ No'}</span></div>
                 </div>
             </div>
             <div class="separator"></div>
@@ -435,7 +1014,7 @@
             <div>Solución 0.45%: ${redondear(sol8)} ml</div>
             <div>Dextrosa 5%: ${redondear(dex8)} ml</div>
             <div>KCl 7.5%: ${redondear(KCl)} ml</div>
-            <div style="background:#fef9e7; padding:4px 8px; border-radius:4px; margin-top:4px;"><strong>Total fase 8h:</strong> ${redondear(total8)} ml</div>
+            <div style="background:var(--highlight); padding:4px 8px; border-radius:4px; margin-top:4px;"><strong>Total fase 8h:</strong> ${redondear(total8)} ml</div>
             <div>CC/hora: ${redondear(ccHora8)}</div>
             <div>Gotas/min: ${redondear(gotasMin8)}</div>
             <div class="separator"></div>
@@ -444,22 +1023,22 @@
             <div>Solución 0.45%: ${redondear(sol16)} ml</div>
             <div>Dextrosa 5%: ${redondear(dex16)} ml</div>
             <div>KCl 7.5%: ${redondear(KCl)} ml</div>
-            <div style="background:#fef9e7; padding:4px 8px; border-radius:4px; margin-top:4px;"><strong>Total fase 16h:</strong> ${redondear(total16)} ml</div>
+            <div style="background:var(--highlight); padding:4px 8px; border-radius:4px; margin-top:4px;"><strong>Total fase 16h:</strong> ${redondear(total16)} ml</div>
             <div>CC/hora: ${redondear(ccHora16)}</div>
             <div>Gotas/min: ${redondear(gotasMin16)}</div>
-            <div class="separator"></div>
-            <div><strong>Glicemia > 250?</strong> ${glicemia > 250 ? '✅ Sí' : '❌ No'}</div>
         `;
+        showToast('✅ Cálculo Cetoacidosis completado');
     }
 
-    // ================================================
-    // ALGORITMO CARVAJAL
-    // ================================================
+    // ----- CARVAJAL -----
     function calcularCarvajal() {
         const peso = parseFloat(document.getElementById('car-peso').value) || 0;
         const talla = parseFloat(document.getElementById('car-talla').value) || 0;
         const scq = parseFloat(document.getElementById('car-scq').value) || 0;
-        if (peso <= 0 || talla <= 0 || scq < 0) { document.getElementById('car-output').innerHTML = '<div style="color:#e53e3e;">Datos válidos requeridos.</div>'; return; }
+        if (peso <= 0 || talla <= 0 || scq < 0) {
+            document.getElementById('car-output').innerHTML = '<div style="color:#e53e3e;">⚠️ Datos válidos requeridos.</div>';
+            return;
+        }
 
         const SC = Math.sqrt((peso * talla) / 3600);
         const LT = 2000 * SC + 5000 * scq;
@@ -472,10 +1051,10 @@
         const el = document.getElementById('car-output');
         el.innerHTML = `
             <div class="info-box">
-                <div class="info-box-grid">
-                    <div class="info-item"><span class="label">SC (Superficie Corporal):</span><span class="value sc-value">${redondear(SC)} m²</span></div>
-                    <div class="info-item"><span class="label">SCQ (%):</span><span class="value">${redondear(scq)} %</span></div>
-                    <div class="info-item"><span class="label">LT (Líquido Total 24h):</span><span class="value lt-value">${redondear(LT)} ml</span></div>
+                <div class="info-grid">
+                    <div class="info-item"><span class="label">SC:</span><span class="value sc-value">${redondear(SC)} m²</span></div>
+                    <div class="info-item"><span class="label">SCQ:</span><span class="value">${redondear(scq)} %</span></div>
+                    <div class="info-item"><span class="label">LT (24h):</span><span class="value lt-value">${redondear(LT)} ml</span></div>
                 </div>
             </div>
             <div class="separator"></div>
@@ -489,16 +1068,18 @@
             <div>CC/hora: ${redondear(ccHora16)}</div>
             <div>Gotas/min: ${redondear(gotasMin16)}</div>
         `;
+        showToast('✅ Cálculo Carvajal completado');
     }
 
-    // ================================================
-    // ALGORITMO POLIELECTROLÍTICA
-    // ================================================
+    // ----- POLIELECTROLÍTICA -----
     function calcularPoli() {
         const peso = parseFloat(document.getElementById('poli-peso').value) || 0;
         const talla = parseFloat(document.getElementById('poli-talla').value) || 0;
         const perdidas = parseFloat(document.getElementById('poli-perdidas').value) || 0;
-        if (peso <= 0 || talla <= 0) { document.getElementById('poli-output').innerHTML = '<div style="color:#e53e3e;">Peso y talla > 0</div>'; return; }
+        if (peso <= 0 || talla <= 0) {
+            document.getElementById('poli-output').innerHTML = '<div style="color:#e53e3e;">⚠️ Peso y talla > 0</div>';
+            return;
+        }
 
         const SC = Math.sqrt((peso * talla) / 3600);
         const LT = 100 * peso;
@@ -506,7 +1087,10 @@
         const HCO3 = (peso * 2) / 0.6;
         const AG = KCl + HCO3;
         const LR = LT - (AG + perdidas);
-        if (LR <= 0) { document.getElementById('poli-output').innerHTML = '<div style="color:#e53e3e;">LR negativo. Revise pérdidas.</div>'; return; }
+        if (LR <= 0) {
+            document.getElementById('poli-output').innerHTML = '<div style="color:#e53e3e;">⚠️ LR negativo. Revise pérdidas.</div>';
+            return;
+        }
 
         const divisor = getDivisor(LR);
         const horas = getHoras(LT);
@@ -524,9 +1108,12 @@
         const totalDiario = Dex5 + Salina + KCl + HCO3;
         const totalDosis = totalDiario / divisor;
         mostrarTabla('poli-output', filas, redondear(totalDiario), redondear(totalDosis), horas);
+        showToast('✅ Cálculo Polielectrolítica completado');
     }
 
-    // Cálculo inicial
+    // =============================================
+    // CARGA INICIAL
+    // =============================================
     window.onload = function() {
         calcularHPM();
     };
