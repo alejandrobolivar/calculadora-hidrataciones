@@ -264,7 +264,7 @@
         const SC = Math.sqrt((peso * talla) / 3600);
         const LT = Math.min(SC * 1500, 3000);
         const KCl = peso * 2;
-        const NaCl = (talla * 2) / 3.4; // ✅ FORMULA CORRECTA: usa TALLA
+        const NaCl = (peso * 2) / 3.4;
         const MgSO4 = peso * 0.25;
         const AG = KCl + NaCl + MgSO4;
         const LR = LT - (AG + perdidas);
