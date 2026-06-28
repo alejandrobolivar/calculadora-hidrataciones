@@ -831,7 +831,7 @@
         const SC = Math.sqrt((peso * talla) / 3600);
         const LT = Math.min(SC * 1500, 3000);
         const KCl = peso * 2;
-        const NaCl = (talla * 2) / 3.4;
+        const NaCl = (peso * 2) / 3.4;
         const MgSO4 = peso * 0.25;
         const AG = KCl + NaCl + MgSO4;
         const LR = LT - (AG + perdidas);
@@ -850,7 +850,7 @@
         const filas = [
             { label: 'DEXTROSA 5%', diario: redondear(dexDiario), dosis: redondear(dexDosis) },
             { label: 'KCL AL 7,5%', diario: redondear(KCl), dosis: redondear(KCl / divisor) },
-            { label: 'NACL AL 20% (Talla×2/3.4)', diario: redondear(NaCl), dosis: redondear(NaCl / divisor) },
+            { label: 'NACL AL 20%', diario: redondear(NaCl), dosis: redondear(NaCl / divisor) },
             { label: 'MGSO4 AL 10%', diario: redondear(MgSO4), dosis: redondear(MgSO4 / divisor) }
         ];
         const totalDiario = dexDiario + KCl + NaCl + MgSO4;
