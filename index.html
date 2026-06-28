@@ -705,18 +705,18 @@
     }
 
     function getDivisor(LR) {
-        if (LR < 500) return 1;
-        if (LR < 1000) return 2;
-        if (LR < 1500) return 3;
-        if (LR < 2000) return 4;
+        if (LR <= 500) return 1;
+        if (LR <= 1000) return 2;
+        if (LR <= 1500) return 3;
+        if (LR <= 2000) return 4;
         return 6;
     }
 
     function getHoras(LT) {
-        if (LT < 500) return 24;
-        if (LT < 1000) return 12;
-        if (LT < 1500) return 8;
-        if (LT < 2000) return 6;
+        if (LT <= 500) return 24;
+        if (LT <= 1000) return 12;
+        if (LT <= 1500) return 8;
+        if (LT <= 2000) return 6;
         return 4;
     }
 
