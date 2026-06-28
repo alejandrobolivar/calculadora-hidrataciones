@@ -907,7 +907,7 @@
             { label: 'MGSO4 AL 10%', diario: redondear(MgSO4), dosis: redondear(MgSO4 / divisor) },
             { label: 'GLUCONATO CA 10%', diario: redondear(Ca), dosis: redondear(Ca / divisor) }
         ];
-        const totalDiario = Dex5 + KCl + NaCl + MgSO4 + Ca;
+        const totalDiario = Dex5 + Dex10 + KCl + NaCl + MgSO4 + Ca;
         const totalDosis = totalDiario / divisor;
         mostrarTabla('rn-output', filas, redondear(totalDiario), redondear(totalDosis), horas);
         showToast('✅ Cálculo RN completado');
